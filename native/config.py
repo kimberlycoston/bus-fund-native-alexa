@@ -26,7 +26,7 @@ DEFAULT_LANGUAGE_PAIR = ("English", "Spanish")  # first-use default only, not a 
 COMMAND_INTERFACE_LANGUAGE = "English"
 
 # ── Turn-taking and timers (seconds) ─────────────────────────────────────────
-UTTERANCE_SILENCE_SEC = 3.0         # FR-05 utterance boundary after genuine speech
+UTTERANCE_SILENCE_SEC = 1.0         # FR-05 utterance boundary after genuine speech
 INACTIVITY_TIMEOUT_SEC = 120.0      # FR-06 conversational inactivity → STANDBY
 COMMAND_REPLY_TIMEOUT_SEC = 30.0    # FR-06 language-selection reply timeout
 COMMAND_SILENCE_SEC = 1.5           # end of a command spoken after "Hey Native" in an active session

@@ -7,8 +7,9 @@ const btn = $('toggle');
 const ui = {
   setStatus(state, text, mic) {
     $('status').textContent = text;
+    $('room').dataset.state = state;
     const on = state !== S.OFF;
-    btn.textContent = on ? 'Deactivate Native' : 'Activate Native';
+    btn.textContent = on ? 'Stop Demo' : 'Start Demo';
     btn.classList.toggle('on', on);
     btn.setAttribute('aria-pressed', String(on));
     const micDot = $('micDot');

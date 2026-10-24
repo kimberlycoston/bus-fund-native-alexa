@@ -18,6 +18,20 @@
   html, body { margin: 0; background: var(--bg); color: var(--fg);
     font: 15px/1.45 "Source Sans Pro", "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif; }
   .wrap { border: 1px solid var(--line); border-radius: 14px; background: var(--card); padding: 22px 20px 18px; }
+  .room { margin: 0 0 18px; border-radius: 12px; overflow: hidden; background: #edf4f4; }
+  .room svg { display: block; width: 100%; height: auto; max-height: 220px; }
+  .device-ring { stroke: #73828b; transition: stroke .3s, filter .3s; }
+  .room[data-state="STANDBY"] .device-ring { stroke: #37d4c0; filter: drop-shadow(0 0 5px #37d4c0); }
+  .room[data-state="ACTIVATING"] .device-ring,
+  .room[data-state="TRANSLATING"] .device-ring { stroke: #ffc566; animation: device-breathe 1.5s ease-in-out infinite; }
+  .room[data-state="LISTENING"] .device-ring,
+  .room[data-state="COMMAND"] .device-ring,
+  .room[data-state="LANGUAGE_SELECTION"] .device-ring { stroke: #6bccff; animation: device-breathe 1.5s ease-in-out infinite; }
+  .room[data-state="SPEAKING"] .device-ring,
+  .room[data-state="REPLAYING"] .device-ring { stroke: #bd9dff; animation: device-breathe 1.5s ease-in-out infinite; }
+  .room[data-state="ERROR"] .device-ring { stroke: #f18a8a; }
+  @keyframes device-breathe { 50% { filter: drop-shadow(0 0 7px currentColor); opacity: .6; } }
+  @media (prefers-reduced-motion: reduce) { .room .device-ring { animation: none !important; } }
   button#toggle { width: 100%; min-height: 64px; border: 0; border-radius: 12px; font: inherit; font-size: 1.25rem;
     font-weight: 650; letter-spacing: .01em; cursor: pointer; background: var(--accent); color: var(--accent-fg);
     transition: filter .15s, transform .05s; }
@@ -29,6 +43,12 @@
   .status { margin: 16px 0 4px; font-size: 1.15rem; font-weight: 600; min-height: 1.6em; }
   .pair { color: var(--muted); font-size: .95rem; }
   .pair b { color: var(--fg); font-weight: 600; }
+  .instructions { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .instructions h2 { margin: 0 0 8px; font-size: 1.05rem; }
+  .instructions p { margin: 8px 0; }
+  .instructions ol { margin: 12px 0; padding-left: 22px; }
+  .instructions li { margin: 12px 0; }
+  .instructions .note { color: var(--muted); font-size: .9rem; }
   .ind { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 14px; font-size: .86rem; color: var(--muted); }
   .ind span { display: inline-flex; align-items: center; gap: 7px; }
   .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--off); flex: none; }
@@ -46,7 +66,28 @@
 </head>
 <body>
   <div class="wrap" role="region" aria-label="Native interpreter">
-    <button id="toggle" type="button" aria-pressed="false">Activate Native</button>
+    <div class="room" id="room" data-state="OFF" aria-hidden="true">
+      <svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg">
+        <rect width="640" height="220" fill="#edf4f4"/>
+        <path d="M0 170H640V220H0Z" fill="#dbe6e5"/>
+        <rect x="36" y="24" width="116" height="106" rx="5" fill="#fff"/>
+        <rect x="43" y="31" width="102" height="92" rx="2" fill="#d2e9ef"/>
+        <path d="M94 31V123M43 77H145" stroke="#fff" stroke-width="5"/>
+        <path d="M432 72V188M612 111V188" stroke="#91a9ad" stroke-width="8" stroke-linecap="round"/>
+        <rect x="433" y="115" width="178" height="39" rx="10" fill="#fff"/>
+        <path d="M488 104H590Q606 104 606 120V140H488Z" fill="#b4ced0"/>
+        <rect x="442" y="100" width="45" height="21" rx="8" fill="#fff"/>
+        <rect x="247" y="158" width="146" height="10" rx="4" fill="#a4babc"/>
+        <path d="M257 168V205M383 168V205" stroke="#a4babc" stroke-width="6"/>
+        <ellipse cx="320" cy="157" rx="53" ry="7" fill="#83999e" opacity=".25"/>
+        <rect x="275" y="91" width="90" height="65" rx="25" fill="#263a46"/>
+        <ellipse cx="320" cy="101" rx="44" ry="16" fill="#354d5a"/>
+        <ellipse class="device-ring" cx="320" cy="100" rx="40" ry="13" fill="none" stroke-width="4"/>
+        <path d="M289 124H351M289 132H351M294 140H346" stroke="#48606c" stroke-width="2" stroke-dasharray="1 4"/>
+        <text x="320" y="62" text-anchor="middle" fill="#48606c" font-family="system-ui, sans-serif" font-size="12" letter-spacing="3">NATIVE</text>
+      </svg>
+    </div>
+    <button id="toggle" type="button" aria-pressed="false">Start Demo</button>
     <div class="status" id="status" role="status" aria-live="polite">Off</div>
     <div class="pair" id="pair">Languages: <b>English</b> ↔ <b>Spanish</b></div>
     <div class="ind">
@@ -59,6 +100,19 @@
       VAD <div class="bar"><i id="vadBar"></i></div>
       Wake <div class="bar"><i id="wakeBar"></i></div>
     </div>
+    <section class="instructions" aria-labelledby="demo-instructions">
+      <h2 id="demo-instructions">Try Native</h2>
+      <p>Click <strong>Start Demo</strong> and allow microphone access. Native will listen for <strong>“Hey Native.”</strong></p>
+      <p>Say <strong>“Hey Native,”</strong> wait for the chime, then speak. The default language pair is <strong>English ↔ Spanish</strong>.</p>
+      <ol>
+        <li><strong>“Hey Native, choose languages”</strong><br>
+          When prompted, say two languages—for example, “Spanish and French.” Native remembers your choice until you change it.</li>
+        <li><strong>“Hey Native, repeat please”</strong><br>
+          Hear the most recent translation again.</li>
+      </ol>
+      <p>Click <strong>Stop Demo</strong> to turn off the microphone.</p>
+      <p class="note">For this demo, the button turns Native on and off. The intended bedside device would stay on in the patient’s room, listening for its wake word while in use.</p>
+    </section>
   </div>
   <script src="vendor/ort.wasm.min.js"></script>
   <script type="module" src="js/main.js"></script>
