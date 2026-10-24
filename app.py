@@ -34,9 +34,8 @@ def _api_key() -> str | None:
 runtime = _runtime()
 api_key = _api_key()
 
-st.markdown("<h2 style='margin-bottom:0'>Native</h2>", unsafe_allow_html=True)
-st.caption("Hands-free multilingual interpreter · prototype. Not a certified medical interpreter — "
-           "use fictional or synthetic conversations only.")
+st.markdown("<h2 style='margin-bottom:0'>Native Lisans</h2>", unsafe_allow_html=True)
+st.caption("Hands-free, ambient multilingual interpreter for patient rooms")
 
 for p in runtime.problems:
     st.error(p)
