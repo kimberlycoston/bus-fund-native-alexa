@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Native</title>
+<style>
+  :root {
+    --bg: transparent; --fg: #1d2330; --muted: #5d6677; --line: #dfe3ea; --card: #ffffff;
+    --accent: #0f6b5c; --accent-fg: #ffffff; --stop: #9b2c2c; --ok: #1f8a4c; --warn: #b7791f; --off: #9aa3b2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg: #e8ebf1; --muted: #a3acbb; --line: #333a46; --card: #1b1f27; --accent: #2bb39a; --accent-fg: #06221d; --stop: #e06c6c; }
+  }
+  body.dark { --fg: #e8ebf1; --muted: #a3acbb; --line: #333a46; --card: #1b1f27; --accent: #2bb39a; --accent-fg: #06221d; --stop: #e06c6c; }
+  body.light { --fg: #1d2330; --muted: #5d6677; --line: #dfe3ea; --card: #ffffff; --accent: #0f6b5c; --accent-fg: #fff; --stop: #9b2c2c; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.45 "Source Sans Pro", "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { border: 1px solid var(--line); border-radius: 14px; background: var(--card); padding: 22px 20px 18px; }
+  button#toggle { width: 100%; min-height: 64px; border: 0; border-radius: 12px; font: inherit; font-size: 1.25rem;
+    font-weight: 650; letter-spacing: .01em; cursor: pointer; background: var(--accent); color: var(--accent-fg);
+    transition: filter .15s, transform .05s; }
+  button#toggle:hover { filter: brightness(1.07); }
+  button#toggle:active { transform: translateY(1px); }
+  button#toggle:focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
+  button#toggle.on { background: var(--stop); color: #fff; }
+  button#toggle[disabled] { opacity: .6; cursor: progress; }
+  .status { margin: 16px 0 4px; font-size: 1.15rem; font-weight: 600; min-height: 1.6em; }
+  .pair { color: var(--muted); font-size: .95rem; }
+  .pair b { color: var(--fg); font-weight: 600; }
+  .ind { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 14px; font-size: .86rem; color: var(--muted); }
+  .ind span { display: inline-flex; align-items: center; gap: 7px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--off); flex: none; }
+  .dot.on { background: var(--ok); } .dot.warn { background: var(--warn); }
+  .dot.pulse { animation: p 1s infinite; } @keyframes p { 50% { opacity: .35; } }
+  .prompt { margin-top: 12px; font-size: .92rem; color: var(--fg); min-height: 0; }
+  .prompt:empty { display: none; }
+  .err { margin-top: 12px; padding: 10px 12px; border-radius: 8px; font-size: .9rem;
+    background: color-mix(in srgb, var(--stop) 12%, transparent); color: var(--fg); border: 1px solid color-mix(in srgb, var(--stop) 40%, transparent); }
+  .err:empty { display: none; }
+  .meter { margin-top: 12px; font: 12px ui-monospace, monospace; color: var(--muted); display: none; }
+  .bar { height: 5px; background: var(--line); border-radius: 3px; overflow: hidden; margin: 2px 0 6px; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--accent); }
+</style>
+</head>
+<body>
+  <div class="wrap" role="region" aria-label="Native interpreter">
+    <button id="toggle" type="button" aria-pressed="false">Activate Native</button>
+    <div class="status" id="status" role="status" aria-live="polite">Off</div>
+    <div class="pair" id="pair">Languages: <b>English</b> ↔ <b>Spanish</b></div>
+    <div class="ind">
+      <span><i class="dot" id="micDot"></i><span id="micText">Microphone off</span></span>
+      <span><i class="dot" id="cloudDot"></i><span id="cloudText">OpenAI: not connected</span></span>
+    </div>
+    <div class="prompt" id="prompt" aria-live="polite"></div>
+    <div class="err" id="err" role="alert"></div>
+    <div class="meter" id="meter">
+      VAD <div class="bar"><i id="vadBar"></i></div>
+      Wake <div class="bar"><i id="wakeBar"></i></div>
+    </div>
+  </div>
+  <script src="vendor/ort.wasm.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

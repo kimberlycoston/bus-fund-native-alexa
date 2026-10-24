@@ -1,0 +1,10 @@
+.streamlit/secrets.toml
+data/native_prefs.json
+native_component/frontend/runtime/*
+!native_component/frontend/runtime/.gitkeep
+__pycache__/
+.pytest_cache/
+.venv
+.env
+env
+venv

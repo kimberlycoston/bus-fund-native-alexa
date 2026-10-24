@@ -1,0 +1,2 @@
+streamlit>=1.40
+onnxruntime>=1.17   # server-side compatibility check of the wake-word model

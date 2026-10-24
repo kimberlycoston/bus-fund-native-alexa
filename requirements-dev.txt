@@ -1,0 +1,5 @@
+-r requirements.txt
+pytest
+openwakeword==0.4.0   # reference implementation for tools/wakeword_parity.mjs comparisons
+websockets            # tools/mock_openai.py
+playwright            # tools/e2e_test.py
