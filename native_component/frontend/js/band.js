@@ -6,16 +6,16 @@ export function mountBand(cfg) {
   document.body.className='band-app';
   document.body.innerHTML=`<main class="band-shell">
     <header class="brand"><a href="#" aria-label="Native Lisans home"><img class="brand-logo" src="assets/native-lisans-logo.png" alt=""> native <b>lisans</b></a></header>
-    <section class="intro"><div class="eyebrow">THE LISANS BAND</div><h1>A voice that stays with you.</h1><p>One press. A conversation in your language.</p></section>
+    <section class="intro"><div class="eyebrow">INTERPRETATION</div><h1>Lisans Band</h1><p>Two-way interpretation for bedside conversations.</p></section>
     <div class="workspace"><section class="product" aria-label="Interactive Lisans band">
       <div class="device-stage" id="stage" data-state="OFF"><div class="halo"></div><div class="strap"><i></i><i></i><i></i><i></i></div><div class="pod"><div class="pod-top"><span>NATIVE</span><span class="led"></span></div><button id="band-button" aria-label="Start interpretation" aria-pressed="false"><span class="button-glyph">↔</span></button><div class="speaker">···············</div><div class="pod-label">LISANS</div></div></div>
       <div class="device-copy"><div class="state-label" id="status" role="status" aria-live="polite">Ready when you are</div><p id="hint">Press the band to start interpreting.</p><div class="wave" aria-hidden="true">${'<i></i>'.repeat(19)}</div></div>
 
     </section>
-    <aside class="conversation"><div class="session-heading"><div><div class="eyebrow">CONVERSATION</div><h2>Understanding starts here.</h2><div class="assigned" id="assigned"></div></div><span class="live-dot" id="connection">Offline</span></div>
+    <aside class="conversation"><div class="session-heading"><div><div class="eyebrow">CONVERSATION</div><h2>Conversation transcript</h2><div class="assigned" id="assigned"></div></div><span class="live-dot" id="connection">Offline</span></div>
       <div class="assignment"><label>Staff language<select id="staff"></select></label><span>↔</span><label>Patient language<select id="patient"></select></label><button id="apply">Set languages</button></div><button id="use-patient-lang" class="use-lang" hidden></button>
-      <div id="error" role="alert"></div><div class="transcript" id="transcript" aria-live="polite"><div class="empty" id="empty"><span>“</span><h3>Every word matters.</h3><p>Your live translations will appear here.<br>Either person can speak in their selected language.</p></div></div>
-      <div class="session-actions"><button id="repeat" disabled>↻ Replay last translation</button><button id="clear">Clear transcript</button></div>
+      <div id="error" role="alert"></div><div class="transcript" id="transcript" aria-live="polite"><div class="empty" id="empty"><span>“</span><h3>No exchanges yet</h3><p>Original speech and interpretation appear here as you speak.</p></div></div>
+      <div class="session-actions"><button id="repeat" disabled>↻ Replay last translation</button><button id="clear">Clear display</button></div>
       <div class="session-footer"><span id="turns">0 exchanges</span><span id="elapsed">00:00</span></div>
     </aside></div><footer class="footnote"></footer>
   </main>`;
@@ -23,7 +23,7 @@ export function mountBand(cfg) {
   // Lisans Portal link: which band this is and which patient wears it (set on the Streamlit page; latest render wins).
   const portal=()=>(Streamlit.args&&Streamlit.args.config&&Streamlit.args.config.portal)||{};
   const uid=()=>{try{return crypto.randomUUID().replace(/-/g,'');}catch{return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,10);}};
-  const showAssigned=()=>{const p=portal();$('assigned').textContent=p.band_id?`Band ${p.band_id} · ${p.patient_label||'Not assigned to a patient'} · syncing to Lisans Portal`:'';
+  const showAssigned=()=>{const p=portal();$('assigned').textContent=p.band_id?`Band ${p.band_id} · ${p.patient_label||'Not assigned to a patient'}`:'';
     // Offer the patient's preferred language from the Portal (only while stopped, only if it differs).
     const lang=p.patient_language, use=$('use-patient-lang');
     const show=!!(lang&&ctl&&ctl.state===S.OFF&&ctl.pair[1]!==lang&&cfg.supported_languages.includes(lang));
@@ -49,7 +49,7 @@ export function mountBand(cfg) {
   };
   for(const id of ['staff','patient'])for(const lang of cfg.supported_languages){const o=document.createElement('option');o.value=o.textContent=lang;$(id).append(o);}
   ctl=new NativeController(cfg,ui);window.__native=ctl;ui.setPair(ctl.pair);ctl.hello();
-  $('band-button').onclick=()=>{if(ctl.state===S.OFF){if(!cfg.has_api_key){ui.error('Add OPENAI_API_KEY to Streamlit secrets or your environment, then restart.');return;}ctl.activate();}else ctl.deactivate();};
+  $('band-button').onclick=()=>{if(ctl.state===S.OFF){if(!cfg.has_api_key){ui.error('Interpretation is unavailable. Contact your workspace administrator.');return;}ctl.activate();}else ctl.deactivate();};
   $('apply').onclick=async()=>{ $('apply').disabled=true;const r=await ctl._setLanguages($('staff').value,$('patient').value);if(!r.ok)ui.error(r.message);else{ui.clearError();$('hint').textContent=`Ready for ${ctl.pair.join(' ↔ ')}.`;}$('apply').disabled=false;};
   $('use-patient-lang').onclick=async()=>{const lang=portal().patient_language;if(!lang)return;const r=await ctl._setLanguages(ctl.pair[0]===lang?'English':ctl.pair[0],lang);if(!r.ok)ui.error(r.message);else{ui.clearError();$('hint').textContent=`Ready for ${ctl.pair.join(' ↔ ')}.`;}showAssigned();};
   $('repeat').onclick=()=>{if(ctl.state===S.LISTENING&&!ctl.busy)ctl._run(()=>ctl._repeatLastTranslation());};

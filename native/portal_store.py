@@ -26,7 +26,7 @@ from pathlib import Path
 
 from . import config
 
-HOSPITAL_NAME = "Demo Medical Center"
+HOSPITAL_NAME = "Lisans Medical Center"
 UNITS = ["Cardiac Step-Down 4B", "Emergency Department", "Medical ICU"]
 ROLES = {
     "nurse": "Bedside nurse",

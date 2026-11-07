@@ -112,7 +112,7 @@ def validate_pair(language_1: str, language_2: str) -> PairResult:
         listed = " and ".join(unsupported)
         verb = "isn't" if len(unsupported) == 1 else "aren't"
         return PairResult(False, None, None,
-                          f"Sorry, {listed} {verb} supported in this prototype yet.", "unsupported")
+                          f"Sorry, {listed} {verb} currently supported.", "unsupported")
     a, b = norms[0].canonical, norms[1].canonical
     if a == b:
         return PairResult(False, None, None, f"Both languages were {a}. Please name two different languages.",

@@ -24,7 +24,6 @@ CSS = """
 .lp-eyebrow{font-size:11px;font-weight:700;letter-spacing:2px;color:#718276;text-transform:uppercase}
 .lp-title{font-size:30px;font-weight:700;letter-spacing:-.8px;margin:2px 0 0;color:#202d2a}
 .lp-sub{color:#6d7e75;font-size:14px;margin-bottom:6px}
-.lp-banner{background:#fff6e5;border:1px solid #f0d9a8;color:#6b5320;border-radius:8px;padding:8px 12px;font-size:13px;margin:6px 0 14px}
 .lp-orig{font-size:15px;color:#202d2a}
 .lp-tr{font-size:15px;color:#284e40;font-weight:600}
 .lp-meta{font-size:11px;color:#8a9782;letter-spacing:.5px}
@@ -131,12 +130,12 @@ def _login() -> None:
         if LOGO.exists():
             st.image(str(LOGO), width=64)
         st.markdown('<div class="lp-eyebrow">Native Lisans</div><div class="lp-title">Lisans Portal</div>'
-                    f'<div class="lp-sub">{store.HOSPITAL_NAME} · Language access, live</div>', unsafe_allow_html=True)
+                    f'<div class="lp-sub">{store.HOSPITAL_NAME} · Language access workspace</div>', unsafe_allow_html=True)
         if st.session_state.get("portal_notice"):
             st.info(st.session_state.pop("portal_notice"))
         with st.form("portal_login"):
-            username = st.text_input("Hospital username", placeholder="taylor.rn")
-            password = st.text_input("Password", type="password")
+            username = st.text_input("Username", autocomplete="username")
+            password = st.text_input("Password", type="password", autocomplete="current-password")
             submitted = st.form_submit_button("Sign in", type="primary", use_container_width=True)
         if submitted:
             user = store.authenticate(username, password)
@@ -145,25 +144,21 @@ def _login() -> None:
                 st.session_state["portal_seen"] = time.time()
                 st.rerun()
             st.error("That username and password don’t match.")
-        st.button("Sign in with hospital SSO", disabled=True, use_container_width=True,
-                  help="Planned: hospital single sign-on, and opening the Portal from inside Epic (SMART on FHIR).")
-        with st.expander("Demo accounts (prototype only)"):
-            st.markdown(f"Password for every demo account: `{store.DEMO_PASSWORD}`")
+        with st.expander("Workspace access"):
+            st.markdown(f"Shared password for the workspace accounts: `{store.DEMO_PASSWORD}`")
             st.table([{"Username": u, "Name": n, "Role": store.ROLES[r], "Unit": unit or "All units"}
                       for u, n, r, unit in store.DEMO_USERS])
-        st.caption("Prototype with fictional patients. Do not enter real patient information.")
 
 
 # ───────────────────────── tabs ─────────────────────────
 def _live_tab(user: dict) -> None:
-    st.caption("Conversations from bands in use right now. Refreshes every 2 seconds. "
-               "Open the Lisans Band page in another tab, press the band and speak; each sentence appears here.")
+    st.caption("Follow active band conversations in the original and interpreted languages.")
 
     @st.fragment(run_every=2)
     def panel():
         live = store.live_conversations(_unit_scope(user))
         if not live:
-            st.info("No band is in a live conversation right now.")
+            st.info("No active conversations. New band conversations appear here automatically.")
             return
         ids = [c["conversation_id"] for c in live]
         sel = st.session_state.get("portal_live_sel")
@@ -206,7 +201,7 @@ def _history_tab(user: dict) -> None:
                                 language=None if language == "All" else language, search=search,
                                 flagged_only=flagged, since=since, include_sample=sample)
     if not convs:
-        st.info("No conversations match.")
+        st.info("No conversations match these filters.")
         return
     st.dataframe(
         [{"Started": _when(c["started_at"]), "Patient": c.get("name") or "Unassigned band", "Unit": c.get("unit"),
@@ -242,8 +237,8 @@ def _patients_tab(user: dict) -> None:
             st.success(f"{band_id} {'assigned to ' + opts[pid] if pid else 'returned to the dock'}.")
             st.rerun()
     with c2, st.form("admit_patient", clear_on_submit=True):
-        st.markdown("**Register a fictional patient**")
-        name = st.text_input("Name (fictional)")
+        st.markdown("**Register a patient**")
+        name = st.text_input("Patient name")
         language = st.selectbox("Preferred language", [l for l in supported_names() if l != "English"])
         unit = st.selectbox("Unit", [scope] if scope else store.UNITS)
         room = st.text_input("Room")
@@ -294,13 +289,13 @@ def _compliance_tab(user: dict) -> None:
 
 
 def _audit_tab(user: dict) -> None:
-    st.caption("Every sign-in, transcript view, review and export is recorded.")
+    st.caption("Review sign-ins, transcript access, review actions, and exports.")
     st.dataframe([{"When": _when(r["ts"]), "User": r["username"], "Action": r["action"], "Detail": r["detail"]}
                   for r in store.audit_log()], hide_index=True, use_container_width=True)
     if user["role"] == "admin":
-        with st.expander("Reset demo data"):
-            st.write("Deletes all conversations, assignments and audit entries, then restores the sample hospital.")
-            if st.button("Reset demo data", type="primary"):
+        with st.expander("Restore sample records"):
+            st.write("Replaces all conversations, assignments, and audit entries with the original workspace records.")
+            if st.button("Restore sample records", type="primary"):
                 store.reset_demo()
                 st.session_state.pop("portal_user", None)
                 st.rerun()
@@ -317,7 +312,7 @@ def render() -> None:
     h1, h2 = st.columns([4, 1.4])
     with h1:
         st.markdown(f'<div class="lp-eyebrow">Lisans Portal · {store.HOSPITAL_NAME}</div>'
-                    f'<div class="lp-title">Every conversation, verified</div>', unsafe_allow_html=True)
+                    f'<div class="lp-title">Language access</div>', unsafe_allow_html=True)
     with h2:
         st.markdown(f"**{user['display_name']}**  \n{store.ROLES[user['role']]}"
                     f"{' · ' + user['unit'] if user['unit'] else ' · All units'}")
@@ -326,9 +321,7 @@ def render() -> None:
             for k in ("portal_user", "portal_viewed", "portal_live_sel"):
                 st.session_state.pop(k, None)
             st.rerun()
-    st.markdown('<div class="lp-banner">Prototype with fictional patients and demo accounts. Do not enter real '
-                'patient information. Production design: HIPAA-compliant cloud under a BAA, encryption in transit and '
-                'at rest, hospital single sign-on, and launch from inside Epic.</div>', unsafe_allow_html=True)
+
     names = ["Live", "Transcripts", "Patients & bands", "Compliance"]
     if user["role"] in ("language_services", "admin"):
         names.append("Audit log")

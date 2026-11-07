@@ -35,17 +35,16 @@ def _band_picker() -> dict:
     store.init()
     bands = store.bands()
     ids = [b["band_id"] for b in bands]
-    c1, c2, c3 = st.columns([1.2, 3, 2])
-    band_id = c1.selectbox("This band", ids, index=0, key="band_id",
-                           help="The band this screen represents. Assign it to a patient in the Lisans Portal.")
+    c1, c2 = st.columns([1.2, 5])
+    band_id = c1.selectbox("Band ID", ids, index=0, key="band_id",
+                           help="Manage patient assignments in Lisans Portal.")
     b = store.band(band_id) or {}
     if b.get("patient_id"):
         label = f"{b['name']} · {b['unit']} · Room {b['room']}"
-        c2.markdown(f"**Worn by:** {label}  \nPreferred language: **{b['language']}**")
+        c2.markdown(f"**Assigned patient:** {label}  \nPreferred language: **{b['language']}**")
     else:
         label = None
-        c2.markdown("**Not assigned to a patient.** Conversations still save to the Portal as *Unassigned band*.")
-    c3.caption("To watch the transcript live, open **Lisans Portal** from the top menu in a second browser tab.")
+        c2.markdown("**No patient assigned.** Conversations are saved under this band ID.")
     return {"band_id": band_id, "patient_id": b.get("patient_id"), "patient_label": label,
             "patient_language": b.get("language")}
 

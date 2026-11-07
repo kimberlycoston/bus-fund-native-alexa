@@ -15,7 +15,7 @@ python -m pip install -r requirements.txt
 python -m streamlit run band_app.py
 ```
 
-For Streamlit Community Cloud, set the entry point to `band_app.py` on branch `prototype/lisans-band`.
+For Streamlit Community Cloud, set the entry point to `band_app.py` on branch `prototype/lisans-portal`.
 
 Put your API key in Streamlit's app secrets (or your local `.streamlit/secrets.toml`):
 
@@ -34,7 +34,7 @@ Never commit a key. The normal key stays on the Python server; the browser recei
 5. **Transcripts** searches every conversation (try “chest”) and exports one as CSV. **Compliance** shows exchanges by language, unit and day and exports the 1557 log (Language Services/admin only). **Audit log** lists every sign-in, view, review and export.
 6. **Patients & bands** assigns a band to a different patient or registers a new fictional patient.
 
-The Portal starts with clearly labelled sample history (a “Sample” column and an *Include sample data* toggle). The admin account (`portal.admin`) can reset the demo data from the Audit log tab.
+The Portal starts with clearly labelled sample history (a “Sample” column and an *Include sample data* toggle). The admin account (`portal.admin`) can restore the sample records from the Audit log tab.
 
 ## Present the band
 
