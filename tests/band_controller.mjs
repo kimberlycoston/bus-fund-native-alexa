@@ -44,3 +44,16 @@ for(const intent of ['choose_languages','repeat_last_translation','not_a_command
 }
 assert.match(routing._instructions('COMMAND'),/No wake phrase is required/);
 console.log('PASS: choose/repeat route to commands; ordinary speech translates; language replies bypass commands');
+
+// Band prompts stream through the existing Realtime session rather than browser TTS.
+const voiced=new NativeController(cfg,{...ui,prompt(){}});
+let request,finished=false;const chunks=[];const cached=new Int16Array([123]);voiced.lastTranslation=cached;
+voiced.player={say(){assert.fail('band prompts must not use browser speech synthesis');},startStream(){return {push:pcm=>chunks.push(pcm),finish:async()=>{finished=true;}};}};
+voiced._ensureSession=async()=>({respond:async(params,{onAudio})=>{request=params;onAudio(new Int16Array([1,2]));}});
+await voiced._say('Which two languages would you like me to translate?');
+assert.equal(request.conversation,'none');
+assert.deepEqual(request.output_modalities,['audio']);
+assert.match(request.instructions,/Which two languages/);
+assert.equal(chunks.length,1);assert.equal(finished,true);
+assert.equal(voiced.lastTranslation,cached,'spoken prompts must not replace translation replay');
+console.log('PASS: prompts use interpretation session audio, finish playback, and preserve replay');
