@@ -54,7 +54,12 @@ function resize() {
 new ResizeObserver(resize).observe(document.body);
 
 let ctl = null;
+let bandStarted = false;
 Streamlit.onRender((args) => {
+  if (args?.config?.activation_mode === 'button') {
+    if (!bandStarted) { bandStarted = true; import('./band.js').then(m => m.mountBand(args.config)); }
+    return;
+  }
   if (!ctl && args && args.config) {
     ctl = new NativeController(args.config, ui);
     window.__native = ctl;   // handy for debugging in DevTools

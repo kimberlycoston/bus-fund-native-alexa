@@ -60,13 +60,14 @@ export class NativeController {
   preload() {
     if (this.modelsReady) return this.modelsReady;
     this.modelsReady = (async () => {
-      if (!this.cfg.wake_model_ok) throw new NativeError(`Wake-word model problem: ${this.cfg.wake_model_error || 'not available'}`, 'model', true);
+      if (this.cfg.activation_mode !== 'button' && !this.cfg.wake_model_ok) throw new NativeError(`Wake-word model problem: ${this.cfg.wake_model_error || 'not available'}`, 'model', true);
       const ort = window.ort;
       if (!ort) throw new NativeError('ONNX Runtime failed to load in the browser.', 'model', true);
       ort.env.wasm.wasmPaths = new URL('vendor/', location.href).href;
       ort.env.wasm.numThreads = 1;
       try {
-        this.wake = await WakeWordEngine.create(ort, { melUrl: 'vendor/melspectrogram.onnx', embUrl: 'vendor/embedding_model.onnx', wakeUrl: 'runtime/wakeword.onnx' });
+        if (this.cfg.activation_mode === 'button') this.wake = { process: async () => [], reset: async () => {} };
+        else this.wake = await WakeWordEngine.create(ort, { melUrl: 'vendor/melspectrogram.onnx', embUrl: 'vendor/embedding_model.onnx', wakeUrl: 'runtime/wakeword.onnx' });
       } catch (e) {
         throw new NativeError(`The "Hey Native" model could not run in this browser: ${e.message || e}`, 'model', true);
       }
@@ -134,7 +135,12 @@ export class NativeController {
       this.queue = []; this.seg = null; this.pendingWake = null; this.lastTranslation = null;
       if (gen !== this.gen) return;
       this.tick = setInterval(() => this._tick(), 250);
-      this._setState(S.STANDBY);
+      if (this.cfg.activation_mode === 'button') {
+        await this._ensureSession();
+        if (gen !== this.gen) return;
+        await this.player.playCue('start');
+        this._backToListening();
+      } else this._setState(S.STANDBY);
     } catch (e) {
       if (gen !== this.gen) return;
       this._teardown();
@@ -328,6 +334,7 @@ export class NativeController {
   }
 
   _goStandby() {
+    if (this.cfg.activation_mode === 'button') { this.deactivate(); return; }
     this._closeSession();
     this.lastTranslation = null;       // FR-04: clear on return to standby
     this.seg = null; this.pendingWake = null;
@@ -396,6 +403,7 @@ export class NativeController {
     this._closeSession();
     if (this.player) this.player.stopAll();
     this.ui.error(err.message || String(err));
+    if (this.cfg.activation_mode === 'button') { this.deactivate(); return; }
     this._setState(S.ERROR, err.message || String(err));
     // recover to wake-word standby (mic stays on, cloud closed) after the message is visible
     setTimeout(() => { if (gen === this.gen && this.state === S.ERROR) { this.lastTranslation = null; this._setState(S.STANDBY); } }, 4000);
@@ -428,6 +436,7 @@ export class NativeController {
       { output_modalities: ['audio'], instructions: this._instructions('INTERPRETATION') },
       { onAudio: (pcm) => { if (gen !== this.gen) return; if (!speaking) { speaking = true; this._setState(S.SPEAKING); } stream.push(pcm); } });
     if (gen !== this.gen) return;
+    this.ui.translation?.(res.transcript || 'Audio translation', this.pair);
     await stream.finish();
     rt.clearConversation();
     if (res.audio.length) this.lastTranslation = concatInt16(res.audio);   // exact audio for "repeat please"
