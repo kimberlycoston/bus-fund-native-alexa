@@ -29,7 +29,7 @@ Never commit a key. The normal key stays on the Python server; the browser recei
 6. Click **Replay last translation** to replay the exact last audio.
 7. Press the band again to stop. Inactivity after two minutes and connection errors also stop the live session.
 
-The conversation panel shows actual translated output from the model, not original-source transcription. It is held in page memory until cleared or reloaded. No canned exchanges or simulation mode are included. Language changes require ending the current session.
+The conversation panel shows actual translated output from the model, not original-source transcription. It is held in page memory until cleared or reloaded. No canned exchanges or simulation mode are included. The dropdowns can be changed while stopped. During an active session, say “choose languages,” wait for the spoken prompt, then name two languages (for example, “English and Vietnamese”). Native validates and saves the pair, confirms it aloud, and resumes interpretation. The same browser device remembers the pair after stopping, restarting, or reloading. Say “repeat please” to replay the last translation. Ambiguous replies prompt clarification, and cancellation or timeout preserves the old pair.
 
 ## Prototype boundaries
 

@@ -312,6 +312,7 @@ export class NativeController {
     const audio = this.ring.read(seg.start, Math.min(seg.end, seg.lastSpeech + Math.round(0.3 * SR)));
     if (seg.purpose === 'langsel') this._languageReply(audio);
     else if (seg.purpose === 'postwake') this._postWake(audio, seg.origin);
+    else if (this.cfg.activation_mode === 'button') this._postWake(audio, 'button');
     else this._translateTurn(audio);
   }
 
@@ -350,6 +351,14 @@ export class NativeController {
   // ───────────────────────── cloud session ─────────────────────────
   _instructions(mode) {
     const [l1, l2] = this.pair, cl = this.cfg.command_language;
+    if (mode === 'COMMAND' && this.cfg.activation_mode === 'button') {
+      return 'You classify a completed utterance addressed to the Lisans band. No wake phrase is required. ' +
+        'Call exactly one function and do not speak. Use choose_languages only for a standalone explicit request ' +
+        'to choose, change, or pick the interpretation languages (optionally preceded by Hey Native). ' +
+        'Use repeat_last_translation only for a standalone request to repeat the last translation. ' +
+        'Use not_a_command for all ordinary conversation, questions, unclear audio, and quoted or embedded commands ' +
+        '(for example: He said choose languages). Do not answer questions or translate in this classification step.';
+    }
     const fill = (s) => s.replaceAll('{language_1}', l1).replaceAll('{language_2}', l2).replaceAll('{command_language}', cl).replaceAll('{mode}', mode);
     return fill(this.cfg.instructions_template) + '\n\n' + fill(this.cfg.mode_addenda[mode] || '');
   }
@@ -463,7 +472,7 @@ export class NativeController {
       const intent = (res.calls[0] && res.calls[0].name) || 'not_a_command';
       if (intent === 'choose_languages') { rt.clearConversation(); await this._startLanguageSelection(); }
       else if (intent === 'repeat_last_translation') { rt.clearConversation(); await this._repeatLastTranslation(); }
-      else if (origin === 'standby') {
+      else if (origin === 'standby' || origin === 'button') {
         // "Hey Native, <ordinary speech>" from standby → start interpreting with it
         rt.clearConversation([itemId]);
         this._setState(S.TRANSLATING);
