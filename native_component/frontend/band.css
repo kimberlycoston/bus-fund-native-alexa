@@ -5,3 +5,8 @@ body.band-app{margin:0;background:#f5f5f0;color:#202d2a;font:14px 'DM Sans',syst
 .brand-logo{display:block;width:48px;height:48px;object-fit:contain;flex:none;margin-right:4px}
 .pod-top{position:relative;justify-content:center}
 .pod-top .led{position:absolute;right:12px}
+
+/* Lisans Portal link: assigned patient + original-language line under each translation. */
+.assigned{font-size:10px;color:#6d7e75;margin:-14px 0 18px;letter-spacing:.3px}.assigned:empty{display:none}
+.transcript article .original{font-size:13px;line-height:1.5;color:#7b8872;font-style:italic}.transcript article .original:empty{display:none}
+.use-lang{margin:12px 0 0;border:1px dashed #9fb39a;background:#f3f7ee;color:#2f4f3a;border-radius:8px;padding:8px 12px;font-size:11px;cursor:pointer;align-self:flex-start}.use-lang[hidden]{display:none}

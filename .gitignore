@@ -1,5 +1,6 @@
 .streamlit/secrets.toml
 data/native_prefs.json
+data/lisans_portal.db*
 native_component/frontend/runtime/*
 !native_component/frontend/runtime/.gitkeep
 __pycache__/

@@ -7,7 +7,7 @@ has validated and persisted it).
 """
 from __future__ import annotations
 
-from . import config, prefs
+from . import config, portal_store, prefs
 from .languages import validate_pair
 from .realtime import mint_client_secret
 
@@ -44,6 +44,16 @@ def handle_request(req: dict, api_key: str | None) -> dict:
                     "language_1": l1, "language_2": l2}
         return {"id": rid, "type": kind, "ok": True, "language_1": result.language_1,
                 "language_2": result.language_2, "message": result.message}
+    if kind == "portal_session":  # band turned on/off → conversation opens/closes in the Lisans Portal
+        ok = portal_store.session_event(str(req.get("event", "")), req.get("conversation_id"), req.get("band_id"),
+                                        req.get("patient_id"), str(req.get("language_1", "")),
+                                        str(req.get("language_2", "")))
+        return {"id": rid, "type": kind, "ok": ok}
+    if kind == "log_exchange":  # one interpreted turn → Lisans Portal transcript
+        xid = portal_store.log_exchange(req.get("conversation_id"), req.get("band_id"), req.get("patient_id"),
+                                        req.get("source_text"), req.get("translation"),
+                                        str(req.get("language_1", "")), str(req.get("language_2", "")))
+        return {"id": rid, "type": kind, "ok": bool(xid), "exchange_id": xid}
     return {"id": rid, "type": kind, "ok": False, "error": f"Unknown request type: {kind!r}"}
 
 

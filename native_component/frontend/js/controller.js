@@ -433,20 +433,24 @@ export class NativeController {
       const rt = await this._ensureSession();
       if (gen !== this.gen) return;
       rt.clearConversation();
-      await rt.sendUtterance(audio);
-      await this._interpretCommitted(rt, gen);
+      const itemId = await rt.sendUtterance(audio);
+      await this._interpretCommitted(rt, gen, itemId);
     });
   }
 
-  async _interpretCommitted(rt, gen) {
+  async _interpretCommitted(rt, gen, itemId = null) {
     const stream = this.player.startStream();
     let speaking = false;
     const res = await rt.respond(
       { output_modalities: ['audio'], instructions: this._instructions('INTERPRETATION') },
       { onAudio: (pcm) => { if (gen !== this.gen) return; if (!speaking) { speaking = true; this._setState(S.SPEAKING); } stream.push(pcm); } });
     if (gen !== this.gen) return;
-    this.ui.translation?.(res.transcript || 'Audio translation', this.pair);
+    // What the speaker said, in their own language. Best effort, resolved in parallel with playback;
+    // the input item is not deleted until it arrives (or times out).
+    const source = rt.inputTranscript ? rt.inputTranscript(itemId) : Promise.resolve(null);
+    this.ui.translation?.(res.transcript || 'Audio translation', this.pair, source);
     await stream.finish();
+    await source;
     rt.clearConversation();
     if (res.audio.length) this.lastTranslation = concatInt16(res.audio);   // exact audio for "repeat please"
     if (gen !== this.gen) return;
@@ -477,7 +481,7 @@ export class NativeController {
         rt.clearConversation([itemId]);
         this._setState(S.TRANSLATING);
         this.player.playCue('stop');
-        await this._interpretCommitted(rt, gen);
+        await this._interpretCommitted(rt, gen, itemId);
       } else {
         rt.clearConversation();
         await this._say('Sorry, I can only choose languages or repeat the last translation.');

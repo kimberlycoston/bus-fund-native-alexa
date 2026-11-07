@@ -1,2 +1,2 @@
-streamlit>=1.40
+streamlit>=1.46   # st.navigation(position="top") for the Band + Portal pages
 onnxruntime>=1.17   # server-side compatibility check of the wake-word model

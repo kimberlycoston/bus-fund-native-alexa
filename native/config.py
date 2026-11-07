@@ -56,6 +56,14 @@ REALTIME_VOICE = os.getenv("NATIVE_REALTIME_VOICE", "marin")
 OPENAI_API_BASE = os.getenv("NATIVE_OPENAI_API_BASE", "https://api.openai.com/v1")
 REALTIME_WS_URL = os.getenv("NATIVE_REALTIME_WS_URL", "wss://api.openai.com/v1/realtime")
 CLIENT_SECRET_TTL_SEC = 600         # ephemeral token lifetime; only used to open the socket
+# Source-language transcription of each utterance, shown beside the translation in the
+# Lisans Portal. Set NATIVE_INPUT_TRANSCRIPTION_MODEL="" to turn it off. If OpenAI rejects
+# the setting, the session is minted again without it so interpretation never breaks.
+INPUT_TRANSCRIPTION_MODEL = os.getenv("NATIVE_INPUT_TRANSCRIPTION_MODEL", "gpt-4o-mini-transcribe").strip()
+
+# ── Lisans Portal (hospital web app prototype) ───────────────────────────────
+PORTAL_DB_PATH = Path(os.getenv("NATIVE_PORTAL_DB", ROOT / "data" / "lisans_portal.db"))
+PORTAL_LIVE_WINDOW_SEC = 180        # a band conversation counts as "live" this long after its last exchange
 
 # Developer-only meter showing wake score and VAD probability (off for demos).
 SHOW_DEBUG_METERS = os.getenv("NATIVE_DEBUG", "0") == "1"

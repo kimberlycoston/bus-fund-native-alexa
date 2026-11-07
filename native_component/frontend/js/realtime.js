@@ -31,6 +31,7 @@ export class RealtimeClient {
     this.url = url; this.model = model; this.token = token;
     this.onClose = onClose || (() => {}); this.onTraffic = onTraffic || (() => {});
     this.ws = null; this.waiters = new Set(); this.items = new Set(); this.seq = 0; this.closedByUs = false;
+    this.inputTranscripts = new Map();   // item_id → what the speaker actually said (null if transcription failed)
   }
 
   connect(timeoutMs = 10000) {
@@ -70,6 +71,12 @@ export class RealtimeClient {
     let ev; try { ev = JSON.parse(m.data); } catch { return; }
     if (ev.type === 'conversation.item.added' || ev.type === 'conversation.item.created' || ev.type === 'conversation.item.done') {
       if (ev.item && ev.item.id) this.items.add(ev.item.id);
+    }
+    if (ev.type === 'conversation.item.input_audio_transcription.completed' && ev.item_id) {
+      this.inputTranscripts.set(ev.item_id, (ev.transcript || '').trim());
+      if (this.inputTranscripts.size > 50) this.inputTranscripts.delete(this.inputTranscripts.keys().next().value);
+    } else if (ev.type === 'conversation.item.input_audio_transcription.failed' && ev.item_id) {
+      this.inputTranscripts.set(ev.item_id, null);
     }
     if (ev.type === 'error') {
       const eid = ev.error && ev.error.event_id;
@@ -145,6 +152,18 @@ export class RealtimeClient {
       }
       return { response: resp, audio, transcript, calls };
     } finally { this._onEvent = null; this.onTraffic('idle'); }
+  }
+
+  /** Best effort: the source-language transcription of one committed utterance.
+   *  Resolves with the text, or null if it is unavailable or does not arrive in time. Never throws. */
+  async inputTranscript(itemId, timeoutMs = 2500) {
+    if (!itemId) return null;
+    if (this.inputTranscripts.has(itemId)) return this.inputTranscripts.get(itemId);
+    try {
+      await this.waitFor(e => e.item_id === itemId && (e.type === 'conversation.item.input_audio_transcription.completed'
+        || e.type === 'conversation.item.input_audio_transcription.failed'), timeoutMs, false);
+    } catch { return null; }
+    return this.inputTranscripts.get(itemId) ?? null;
   }
 
   /** Forget everything from the last turn so each utterance is interpreted on its own. */

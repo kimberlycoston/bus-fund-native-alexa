@@ -57,3 +57,16 @@ assert.match(request.instructions,/Which two languages/);
 assert.equal(chunks.length,1);assert.equal(finished,true);
 assert.equal(voiced.lastTranslation,cached,'spoken prompts must not replace translation replay');
 console.log('PASS: prompts use interpretation session audio, finish playback, and preserve replay');
+
+// Lisans Portal: each interpreted turn hands the UI the translation plus the source-language transcript.
+const synced=new NativeController(cfg,{...ui,translation(text,pair,source){synced.__seen={text,pair,source};}});
+let cleared=0;
+const srt={respond:async(_p,{onAudio})=>{onAudio(new Int16Array([5]));return {audio:[new Int16Array([5])],transcript:'My chest feels tight.'};},
+  inputTranscript:async(id)=>id==='item_u1'?'Tôi bị tức ngực.':null,clearConversation(){cleared++;}};
+synced.player={startStream(){return {push(){},finish:async()=>{}};},playCue:async()=>{}};
+synced._backToListening=()=>{};synced._instructions=()=>'INTERPRETATION';
+await synced._interpretCommitted(srt,synced.gen,'item_u1');
+assert.equal(synced.__seen.text,'My chest feels tight.');
+assert.equal(await synced.__seen.source,'Tôi bị tức ngực.');
+assert.equal(cleared,1,'input item is cleared only after its transcript resolved');
+console.log('PASS: interpretation passes original speech + translation to the UI for the Lisans Portal');

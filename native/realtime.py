@@ -130,14 +130,18 @@ def _post_json(url: str, api_key: str, body: dict, timeout: float = 15.0) -> tup
         return e.code, payload
 
 
-def session_config(model: str, language_1: str, language_2: str) -> dict:
+def session_config(model: str, language_1: str, language_2: str, transcription: bool = True) -> dict:
+    audio_in: dict = {"format": {"type": "audio/pcm", "rate": 24000}, "turn_detection": None}
+    if transcription and config.INPUT_TRANSCRIPTION_MODEL:
+        # Source-language text for the Lisans Portal transcript (no language hint: either party may speak).
+        audio_in["transcription"] = {"model": config.INPUT_TRANSCRIPTION_MODEL}
     return {
         "type": "realtime",
         "model": model,
         "instructions": build_instructions(language_1, language_2, "INTERPRETATION"),
         "output_modalities": ["audio"],
         "audio": {
-            "input": {"format": {"type": "audio/pcm", "rate": 24000}, "turn_detection": None},
+            "input": audio_in,
             "output": {"format": {"type": "audio/pcm", "rate": 24000}, "voice": config.REALTIME_VOICE},
         },
     }
@@ -194,6 +198,11 @@ def mint_client_secret(api_key: str | None, language_1: str, language_2: str,
                 "session": session_config(model, language_1, language_2)}
         try:
             status, payload = _post_json(url, api_key, body)
+            msg0 = (payload.get("error") or {}).get("message", "") if isinstance(payload, dict) else ""
+            if status == 400 and "transcription" in msg0.lower():
+                # Never let the optional Portal transcript break interpretation: retry without it.
+                body["session"] = session_config(model, language_1, language_2, transcription=False)
+                status, payload = _post_json(url, api_key, body)
         except Exception as e:  # DNS, TLS, timeout …
             return MintResult(False, error=f"Could not reach OpenAI ({type(e).__name__}). Check the network.",
                               error_kind="network")
