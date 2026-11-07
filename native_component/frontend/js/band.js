@@ -5,7 +5,7 @@ export function mountBand(cfg) {
   const css=document.createElement('link'); css.rel='stylesheet';css.href='band.css';css.dataset.band='';document.head.append(css);
   document.body.className='band-app';
   document.body.innerHTML=`<main class="band-shell">
-    <header class="brand"><a href="#" aria-label="Native Lisans home"><img class="brand-logo" src="assets/native-lisans-logo.png" alt=""> native <b>lisans</b></a><span class="prototype">LIVE PROTOTYPE</span><button id="present">Presentation view</button></header>
+    <header class="brand"><a href="#" aria-label="Native Lisans home"><img class="brand-logo" src="assets/native-lisans-logo.png" alt=""> native <b>lisans</b></a></header>
     <section class="intro"><div class="eyebrow">THE LISANS BAND</div><h1>A voice that stays with you.</h1><p>One press. A conversation in your language.</p></section>
     <div class="workspace"><section class="product" aria-label="Interactive Lisans band">
       <div class="device-stage" id="stage" data-state="OFF"><div class="halo"></div><div class="strap"><i></i><i></i><i></i><i></i></div><div class="pod"><div class="pod-top"><span>NATIVE</span><span class="led"></span></div><button id="band-button" aria-label="Start interpretation" aria-pressed="false"><span class="button-glyph">↔</span></button><div class="speaker">···············</div><div class="pod-label">LISANS</div></div></div>
@@ -33,7 +33,6 @@ export function mountBand(cfg) {
   $('apply').onclick=async()=>{ $('apply').disabled=true;const r=await ctl._setLanguages($('staff').value,$('patient').value);if(!r.ok)ui.error(r.message);else{ui.clearError();$('hint').textContent=`Ready for ${ctl.pair.join(' ↔ ')}.`;}$('apply').disabled=false;};
   $('repeat').onclick=()=>{if(ctl.state===S.LISTENING&&!ctl.busy)ctl._run(()=>ctl._repeatLastTranslation());};
   $('clear').onclick=()=>{$('transcript').replaceChildren();count=0;$('turns').textContent='0 exchanges';};
-  $('present').onclick=()=>{document.body.classList.toggle('presenting');$('present').textContent=document.body.classList.contains('presenting')?'Exit presentation':'Presentation view';resize();};
   setInterval(()=>{const s=started?Math.floor((Date.now()-started)/1000):0;$('elapsed').textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;$('repeat').disabled=lastState!==S.LISTENING||ctl.busy||!ctl.lastTranslation;},500);
   window.addEventListener('pagehide',()=>ctl.deactivate());
   function resize(){Streamlit.setFrameHeight(Math.ceil(document.documentElement.scrollHeight)+4);}

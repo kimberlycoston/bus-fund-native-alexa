@@ -23,7 +23,7 @@ Never commit a key. The normal key stays on the Python server; the browser recei
 
 1. Open in Chrome or Edge over HTTPS or localhost. Turn up speaker volume.
 2. Select staff and patient languages, then **Set languages**. Settings persist for this browser device.
-3. Choose **Presentation view** to hide setup controls.
+3. The prototype opens with language controls and the live transcript visible.
 4. Click the large button on the band and allow microphone access. Wait for Listening and the chime.
 5. Speak a sentence in either selected language, pause, and listen to the spoken translation. Wait for the next chime before replying.
 6. Click **Replay last translation** to replay the exact last audio.
