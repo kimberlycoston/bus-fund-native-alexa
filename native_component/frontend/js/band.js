@@ -6,18 +6,18 @@ export function mountBand(cfg) {
   document.body.className='band-app';
   document.body.innerHTML=`<main class="band-shell">
     <header class="brand"><a href="#" aria-label="Native Lisans home"><span class="brand-icon">n</span> native <b>lisans</b></a><span class="prototype">LIVE PROTOTYPE</span><button id="present">Presentation view</button></header>
-    <section class="intro"><div class="eyebrow">THE LISANS BAND</div><h1>A voice that stays<br>with you.</h1><p>One press. A conversation in your language.</p></section>
+    <section class="intro"><div class="eyebrow">THE LISANS BAND</div><h1>A voice that stays with you.</h1><p>One press. A conversation in your language.</p></section>
     <div class="workspace"><section class="product" aria-label="Interactive Lisans band">
       <div class="device-stage" id="stage" data-state="OFF"><div class="halo"></div><div class="strap"><i></i><i></i><i></i><i></i></div><div class="pod"><div class="pod-top"><span>NATIVE</span><span class="led"></span></div><button id="band-button" aria-label="Start interpretation" aria-pressed="false"><span class="button-glyph">↔</span></button><div class="speaker">···············</div><div class="pod-label">LISANS</div></div></div>
       <div class="device-copy"><div class="state-label" id="status" role="status" aria-live="polite">Ready when you are</div><p id="hint">Press the band to start interpreting.</p><div class="wave" aria-hidden="true">${'<i></i>'.repeat(19)}</div></div>
-      <div class="product-bottom"><span>Patient or staff can press</span><span id="mic">Microphone off</span></div>
+
     </section>
     <aside class="conversation"><div class="session-heading"><div><div class="eyebrow">CONVERSATION</div><h2>Understanding starts here.</h2></div><span class="live-dot" id="connection">Offline</span></div>
       <div class="assignment"><label>Staff language<select id="staff"></select></label><span>↔</span><label>Patient language<select id="patient"></select></label><button id="apply">Set languages</button></div>
       <div id="error" role="alert"></div><div class="transcript" id="transcript" aria-live="polite"><div class="empty" id="empty"><span>“</span><h3>Every word matters.</h3><p>Your live translations will appear here.<br>Either person can speak in their selected language.</p></div></div>
       <div class="session-actions"><button id="repeat" disabled>↻ Replay last translation</button><button id="clear">Clear transcript</button></div>
-      <div class="session-footer"><span id="turns">0 exchanges</span><span id="elapsed">00:00</span><span>Audio is not saved by this app</span></div>
-    </aside></div><footer class="footnote"><span>Designed to follow the patient. Built for the moments between.</span><span>Research prototype · Use fictional conversations</span></footer>
+      <div class="session-footer"><span id="turns">0 exchanges</span><span id="elapsed">00:00</span></div>
+    </aside></div><footer class="footnote"></footer>
   </main>`;
   const $=id=>document.getElementById(id); let ctl, count=0, started=0, lastState=S.OFF;
   const ui={
